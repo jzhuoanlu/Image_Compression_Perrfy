@@ -28,6 +28,11 @@ print(f"The new image dimensions are: {pic.size}")
 print(f"the current directory: {os.getcwd()}")
 
 
-# see if in html, we can save images to a file in the current directory
+
+# Goals
+# take more of a look at JS.
+# look the RESTful APIs. Cuz i dont understand APIs that well.
+# This will connect the user with our python file.
+# Look the image.py file. we are going to see how they do the compression.
 # goal is to grab all the images out of a file in the directory.
 # Glob and pathlib

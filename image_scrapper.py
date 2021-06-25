@@ -1,4 +1,5 @@
 from bs4 import *
+from PIL import Image
 import shutil
 import requests
 import os
@@ -21,27 +22,26 @@ def is_absolute(url):
     return bool(urlparse(url).netloc)
 
 
-def gen_directory():
+def gen_directory(path_to_dir):
     """ Generates an empty directory named "images." If one already exist, it 
     would override it.
 
     Returns
     -------
-    dir_name : String
-        return dir_name = "images" on success and None at failure (I'm thinking about changing this implemenation up)
+     : bool
+        return True on success and False on failure (I'm thinking about changing this implemenation up)
     """
 
-    dir_name = "images"
     try:
-        os.mkdir(dir_name)
+        os.mkdir(path_to_dir)
     except FileExistsError:
         # if the directory already exists, then delete it and recreate it
         try:
-            shutil.rmtree(dir_name)
-            os.mkdir(dir_name)
+            shutil.rmtree(path_to_dir)
+            os.mkdir(path_to_dir)
         except:
-            return None
-    return dir_name
+            return False
+    return True
 
 
 def download_images(url, images, dir_name):
@@ -148,3 +148,40 @@ def get_images(url):
     images = soup.findAll('img')
 
     return(images)
+
+
+  
+# ============================================================================
+# this is the name of the outputed compressed file. 
+# This really could just be a random number
+def compress(path_to_saved, path_to_compressed):
+    
+    dirs = os.listdir(path_to_saved)
+    for image in dirs:
+
+        im = Image.open(path_to_saved + "/" + image)
+        im.save(path_to_compressed + "\compressed_" + image, optimize=True, quality=30)
+        """
+
+
+        # take in a file named test.jpeg. this is hard to say
+        im = Image.open(image)
+
+        # dim is the size of im
+        dim = im.size
+        print(f"The image dimensions are: {dim}")       
+
+        # find the size of the original file
+        print(f"File size of the original file is: {os.stat(image).st_size}")
+
+        # returns None
+        
+
+
+        pic = Image.open(compressed_file)
+        print(f"The new image dimensions are: {pic.size}")
+        print(f"the current directory: {os.getcwd()}")
+
+        """
+
+    print("boom")

@@ -1,0 +1,19 @@
+<html lang="en">
+    <head>
+
+    </head>
+    <body>
+        <a href="{{ url_for('test') }}"> Go to test page </a>
+
+
+        {% for key, value in form_data.items() %}
+        <h2> {{key}}</h2>
+        <p> {{value}}</p>
+        {% endfor %}
+        
+        {% for name in image_names %}
+            <img src="{{ url_for('static', filename='images/' + name) }}" >
+        {% endfor %}
+        
+    </body>
+</html>

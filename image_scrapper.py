@@ -98,7 +98,23 @@ def download_images(url, images, dir_name):
             # test to see if url is relative to base url.
             if not is_absolute(image_url):
                 image_url = urljoin(url, image_url)
+
+            # r is the contents of the image in bytes.
             r = requests.get(image_url).content
+
+            # this works ================================================
+            # see if we can go the pillow route
+            im = Image.open(requests.get(image_url, stream=True).raw)
+            im.show()
+            """
+            right now all it does is display the image. But I want to play around with 
+            some execption handlers. Also the format of the image is something i need to check
+            but i think with some testing we can just move the lines from the compress method here
+            do some error handling and we are done.
+            """
+            
+
+            # ================================================
             
             try:
                 # possibility of decode

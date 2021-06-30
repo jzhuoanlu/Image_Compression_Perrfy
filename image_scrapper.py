@@ -44,28 +44,67 @@ def gen_directory(path_to_dir):
     return True
 
 
-def download_images(url, images, dir_name):
+def compress_images(image_urls, dir_name, quality):
     """ Download images from their src url into a directory named dir_name 
 
     Parameters
     ----------
-    images : ResultSet
-        Set of <img> tags retrieved from the url
+    image_urls : list[string]
+        image urls from the scrapped website
     dir_name : String
         name of directory where the images are saved
+    quality : int
+        percent quality of the image after compression
 
     Returns
     -------
-    success : boolean
-        return true on successfully downloading all the images and false 
-        otherwise
+    uncompressed : list[string]
+        return a list of urls that were unable to be converted.
+    """
+    uncompressed = []
+
+    for image_url in image_urls:  
+        # After getting Image Source URL
+        # We will try to get the content of image
+        try:
+            im = Image.open(requests.get(image_url, stream=True).raw)
+            im.save(dir_name + "/" + image_url.rsplit('/', 1)[-1], optimize=True, quality=quality)
+        except:
+            uncompressed.append(image_url)
+            
+    return uncompressed
+
+
+def get_image_urls(url):
+    """ Returns a list of the absolute source urls for the images specified by the given url.
+
+    Parameters
+    ----------
+    url : str
+        The url of the website being scrapped
+
+    Returns
+    -------
+    image_urls : list[string]
+        a list of the absolute image urls on the website
     """
 
-    count = 0 
+    image_urls = []
+    
+    # requests.get sends a GET request to the specified url. Returns a 
+    # response object
+    r = requests.get(url)
 
+    # beautiful soup grabs the text of the HTML file and uses html.parser to 
+    # parse throug it
+    soup = BeautifulSoup(r.text, 'html.parser')
+
+    # parse through the HTML text and grab all the instances of "img" return in a ResultSet
+    images = soup.findAll('img')
+    
     # if there are no images in the website, return success
     if images == None or len(images) == 0:
-        return True
+        return image_urls
     
     # loop through the images and retrieve the image source url
     for i, image in enumerate(images):
@@ -90,114 +129,11 @@ def download_images(url, images, dir_name):
                     # if no source url is found
                     except:
                         continue
-        
-        # After getting Image Source URL
-        # We will try to get the content of image
-        try:
 
-            # test to see if url is relative to base url.
-            if not is_absolute(image_url):
-                image_url = urljoin(url, image_url)
+        # test to see if url is relative to base url. If not, make it an absolute url
+        if not is_absolute(image_url):
+            image_url = urljoin(url, image_url)
 
-            # r is the contents of the image in bytes.
-            r = requests.get(image_url).content
+        image_urls.append(image_url)
 
-            # this works ================================================
-            # see if we can go the pillow route
-            im = Image.open(requests.get(image_url, stream=True).raw)
-            im.show()
-            """
-            right now all it does is display the image. But I want to play around with 
-            some execption handlers. Also the format of the image is something i need to check
-            but i think with some testing we can just move the lines from the compress method here
-            do some error handling and we are done.
-            """
-            
-
-            # ================================================
-            
-            try:
-                # possibility of decode
-                r = str(r, 'utf-8')
-                
-            except UnicodeDecodeError:
-                
-                # After checking above condition, Image Download start
-                with open(f"{dir_name}/images{i+1}.jpg", "wb+") as f:
-                    f.write(r)
-
-                # counting number of image downloaded
-                count += 1
-        except:
-            pass
-        
-    # if downloaded all the images, return True.
-    if count == len(images):
-        return True
-    else:
-        return False
-
-
-def get_images(url):
-    """ Returns a ResultSet containing all the <img> tags from the website specified by the given url.
-
-    Parameters
-    ----------
-    url : str
-        The url of the website being scrapped
-
-    Returns
-    -------
-    images : ResultSet
-        a list of the <img> tags from the html of the website
-    """
-    
-    # requests.get sends a GET request to the specified url. Returns a 
-    # response object
-    r = requests.get(url)
-
-    # beautiful soup grabs the text of the HTML file and uses html.parser to 
-    # parse throug it
-    soup = BeautifulSoup(r.text, 'html.parser')
-
-    # parse through the HTML text and grab all the instances of "img"
-    images = soup.findAll('img')
-
-    return(images)
-
-
-  
-# ============================================================================
-# this is the name of the outputed compressed file. 
-# This really could just be a random number
-def compress(path_to_saved, path_to_compressed):
-    
-    dirs = os.listdir(path_to_saved)
-    for image in dirs:
-
-        im = Image.open(path_to_saved + "/" + image)
-        im.save(path_to_compressed + "\compressed_" + image, optimize=True, quality=30)
-        """
-
-
-        # take in a file named test.jpeg. this is hard to say
-        im = Image.open(image)
-
-        # dim is the size of im
-        dim = im.size
-        print(f"The image dimensions are: {dim}")       
-
-        # find the size of the original file
-        print(f"File size of the original file is: {os.stat(image).st_size}")
-
-        # returns None
-        
-
-
-        pic = Image.open(compressed_file)
-        print(f"The new image dimensions are: {pic.size}")
-        print(f"the current directory: {os.getcwd()}")
-
-        """
-
-    print("boom")
+    return(image_urls)

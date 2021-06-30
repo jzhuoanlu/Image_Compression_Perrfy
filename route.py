@@ -34,6 +34,7 @@ def download():
         # get the URL submited
         form_data = request.form
         url = form_data["URL"]
+        quality = int(form_data["Quality"])
 
         # get the image source urls off the submitted websites
         image_urls = image_scrapper.get_image_urls(url)
@@ -42,7 +43,7 @@ def download():
         image_scrapper.gen_directory(compress_dir)
 
         # compess and save the images. You can use uncompress to see which ones weren't in a format that could be compressed.
-        uncompressed = image_scrapper.compress_images(image_urls, compress_dir, 30)
+        uncompressed = image_scrapper.compress_images(image_urls, compress_dir, quality)
         
         # get the names of the images
         dirs = os.listdir(compress_dir)

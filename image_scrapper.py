@@ -5,8 +5,6 @@ import requests
 import os
 from urllib.parse import urlparse, urljoin
 
-
-
 def is_absolute(url):
     """ I want too look at this more, I'm not sure what .netloc is exactly
     Parameter

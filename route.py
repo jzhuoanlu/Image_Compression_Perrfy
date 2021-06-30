@@ -6,6 +6,7 @@ import image_scrapper
 import os
 
 # hard code the name of the directory where the compressed images will end up.
+static_dir = "static"
 compress_dir = "static/compressed_images"
 
 # Create Flask's `app` object
@@ -19,7 +20,6 @@ def form():
     return render_template(
         'form.html'
     )
-
 
 @app.route('/download', methods = ['POST', 'GET'])
 def download():
@@ -39,6 +39,8 @@ def download():
         # get the image source urls off the submitted websites
         image_urls = image_scrapper.get_image_urls(url)
 
+        # generate the directory to save the compressed images
+        image_scrapper.gen_directory(static_dir)
         # generate the directory to save the compressed images
         image_scrapper.gen_directory(compress_dir)
 

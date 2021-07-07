@@ -1,15 +1,36 @@
 <html lang="en">
     <head>
+        <style>
+            .row {
+            display: flex;
+            }
 
+            .column {
+            flex: 33.33%;
+            padding: 5px;
+            }
+        </style>
     </head>
     <body>
         {% for key, value in form_data.items() %}
         <h2> {{key}}</h2>
         <p> {{value}}</p>
         {% endfor %}
-        
-        {% for name in image_names %}
-            <img src="{{ url_for('static', filename='compressed_images/' + name) }}" >
+
+        {% for image in image_info %}
+           
+            {% if image['compressed'] != 'x' %}
+               
+            <p>{{image['compressed']}}</p>
+            <div class="row">
+                <div class="column">
+                    <img src="{{image['url']}}" width="{{image['width']}}" height="{{image['height']}}">
+                </div>
+                <div class="column">
+                    <img src="{{ url_for('static', filename=image['compressed']) }}" width="{{image['width']}}" height="{{image['height']}}" >
+                </div>
+            </div> 
+            {% endif %}
         {% endfor %}
         
     </body>

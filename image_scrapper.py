@@ -42,13 +42,15 @@ def gen_directory(path_to_dir):
     return True
 
 
-def compress_images(image_urls, dir_name, quality):
+def compress_images(images_info, dir_name, quality):
     """ Download images from their src url into a directory named dir_name 
+    Also adds the name of the compressed image to the image dictionary to be used to display
+    Images that can't be compressed will contain a 'x' to show it wasn't compressed.
 
     Parameters
     ----------
-    image_urls : list[string]
-        image urls from the scrapped website
+    images_info : list[dict]
+        list of dicts that contain info about the images
     dir_name : String
         name of directory where the images are saved
     quality : int
@@ -60,21 +62,31 @@ def compress_images(image_urls, dir_name, quality):
         return a list of urls that were unable to be converted.
     """
     uncompressed = []
-
-    for image_url in image_urls:  
+   
+    for image_info in images_info:  
         # After getting Image Source URL
         # We will try to get the content of image
+        image_info['compressed'] = None
+        image_name = image_info["url"].rsplit('/', 1)[-1]
         try:
-            im = Image.open(requests.get(image_url, stream=True).raw)
-            im.save(dir_name + "/" + image_url.rsplit('/', 1)[-1], optimize=True, quality=quality)
+            path_to_image = dir_name + "/" + image_name
+            image_info['compressed'] = image_name
+            im = Image.open(requests.get(image_info["url"], stream=True).raw)
+            im.save(path_to_image, optimize=True, quality=quality)
         except:
-            uncompressed.append(image_url)
+            image_info['compressed'] = 'x'
+            uncompressed.append(image_info["url"])
             
     return uncompressed
 
 
-def get_image_urls(url):
-    """ Returns a list of the absolute source urls for the images specified by the given url.
+def get_images(url):
+    """ Returns a list of dictionaries that contain information about the 
+    images. 
+    Note: if src isn't found, then the image isn't returned in the list
+    If src exists but either height or width doesn't exist, then add -1 for 
+    height/width. (displaying with height/width of -1, just displays it as 
+    intrensic value)
 
     Parameters
     ----------
@@ -83,12 +95,10 @@ def get_image_urls(url):
 
     Returns
     -------
-    image_urls : list[string]
-        a list of the absolute image urls on the website
+    image_urls : list[dict{url: , width: , height:}]
+        a list dicts that contain the url, width, and height of the images
     """
 
-    image_urls = []
-    
     # requests.get sends a GET request to the specified url. Returns a 
     # response object
     r = requests.get(url)
@@ -99,10 +109,11 @@ def get_image_urls(url):
 
     # parse through the HTML text and grab all the instances of "img" return in a ResultSet
     images = soup.findAll('img')
-    
+
+    images_info = []
     # if there are no images in the website, return success
     if images == None or len(images) == 0:
-        return image_urls
+        return images_info
     
     # loop through the images and retrieve the image source url
     for i, image in enumerate(images):
@@ -113,6 +124,8 @@ def get_image_urls(url):
             # data-src
             # data-fallback-src
             # src
+        image_info = {"url": None, "width": None, "height": None}
+        
         try:
             image_url = image["data-srcset"]
         except:
@@ -131,7 +144,19 @@ def get_image_urls(url):
         # test to see if url is relative to base url. If not, make it an absolute url
         if not is_absolute(image_url):
             image_url = urljoin(url, image_url)
+        
+        # 
+        image_info["url"] = image_url
 
-        image_urls.append(image_url)
+        # grab the height and the width of the images. if they don't specify height and width, then put -1
+        try:
+            image_info["width"] = image["width"]
+        except:
+            image_info["width"] = -1
+        try:
+            image_info["height"] = image["height"]
+        except:
+            image_info["height"] = -1
 
-    return(image_urls)
+        images_info.append(image_info)
+    return images_info

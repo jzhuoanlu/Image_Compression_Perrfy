@@ -6,7 +6,7 @@ import os
 from urllib.parse import urlparse, urljoin
 
 def is_absolute(url):
-    """ I want too look at this more, I'm not sure what .netloc is exactly
+    """ Checks to see if entered url is the absolute url
     Parameter
     ---------
     url : string
@@ -64,16 +64,22 @@ def compress_images(images_info, dir_name, quality):
     uncompressed = []
    
     for image_info in images_info:  
-        # After getting Image Source URL
-        # We will try to get the content of image
+        # add 'compressed' key to dict to be displayed
         image_info['compressed'] = None
+        # get the name of the image from the url
         image_name = image_info["url"].rsplit('/', 1)[-1]
         try:
+            # get the path to image
             path_to_image = dir_name + "/" + image_name
+            # save image name to 'compressed' key
             image_info['compressed'] = image_name
+
+            # open the image using the raw bits taken from get request
             im = Image.open(requests.get(image_info["url"], stream=True).raw)
+            # save images at the specified quality
             im.save(path_to_image, optimize=True, quality=quality)
         except:
+            # if can't compress, save name as x in the dict
             image_info['compressed'] = 'x'
             uncompressed.append(image_info["url"])
             
@@ -149,6 +155,7 @@ def get_images(url):
         image_info["url"] = image_url
 
         # grab the height and the width of the images. if they don't specify height and width, then put -1
+        # note that displaying -1 in the img tag will just display the intrensic size.
         try:
             image_info["width"] = image["width"]
         except:

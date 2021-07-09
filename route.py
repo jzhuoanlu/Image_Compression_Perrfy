@@ -15,7 +15,7 @@ app = Flask(__name__)
 @app.route("/", methods=["GET"])
 def form():
     """
-    Landing page. Simply take in an URL and ships to the download page
+    Landing page. Simply take in an URL and quality value and ships to the download page
     """
     return render_template(
         'form.html'
@@ -36,7 +36,8 @@ def download():
         url = form_data["URL"]
         quality = int(form_data["Quality"])
 
-        # get the html tags from the website. returns a list of strings
+        # get the information about the website. a list of dictionaries
+        # form: {url: , width: , height:}
         images_info = image_scrapper.get_images(url)
         # this will be sent to the html file to be displayed 
 
@@ -44,15 +45,19 @@ def download():
         image_scrapper.gen_directory(static_dir)
 
         # compess and save the images. You can use uncompress to see which ones weren't in a format that could be compressed.
+        # the names of the images that are compressed are saved to images_info dict
         uncompressed = image_scrapper.compress_images(images_info, static_dir, quality)
+        # note that the images that can't be compressed are named 'x' which was dealt with in the template
         
         # get the names of the images
         dirs = os.listdir(static_dir)
-        # probably should do some checks here but we worry about that later.
 
+        # probably could do some checks here but depends on how you want to implement it.
         return render_template('download.html', 
         form_data = form_data,
         image_info = images_info,
         image_names = dirs)
 
+
+# quickly just run the app to start up the app. Not too much thought put into it.
 app.run(host="0.0.0.0", debug=False)
